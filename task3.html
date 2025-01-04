@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.20.0.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实验 3</title>
+    <link rel="stylesheet" href="sidebar.css">
+    <link rel="stylesheet" href="topbar.css">
+    <style>
+        /* 全局样式 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        /* 顶部导航栏 */
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #00274d;
+            color: #fff;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #fff;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .navbar .back-button {
+            text-decoration: none;
+            color: #fff;
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: #001a33;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .navbar .back-button:hover {
+            background-color: #000d1a;
+        }
+
+        /* 内容区域样式 */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .task-item {
+            border: 1px solid #ccc;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-list {
+            margin-top: 1rem;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid #ddd;
+            background-color: #fff;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-name {
+            flex-grow: 1;
+            margin-right: 1rem;
+        }
+
+        .delete-btn {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.9rem;
+            color: #fff;
+            background-color: #dc3545;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        .task-btn {
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+            color: #fff;
+            background-color: #007bef;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .task-btn:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .task-description {
+            font-size: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        /* 新增样式，显示解析后的数据 */
+        #parsed-data {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table th, table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        table th {
+            background-color: #f2f2f2;
+        }
+
+        /* 图表容器样式 */
+        #plot-container {
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- 左侧导航栏 -->
+    <div class="sidebar">
+        <a href="index.html" class="nav-item">首页</a>
+        <a href="analysis.html" class="nav-item">实验列表</a>
+        <div class="sub-menu">
+            <a href="task1.html" class="nav-item">实验 1</a>
+            <a href="task2.html" class="nav-item">实验 2</a>
+            <a href="task3.html" class="nav-item active">实验 3</a>
+        </div>
+        <a href="viewReport.html" class="nav-item">查看报告</a>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <div class="main-content">
+        <!-- 顶部栏 -->
+        <div class="top-bar">
+            <h1>实验 3</h1>
+        </div>
+
+        <!-- 内容容器 -->
+        <div class="content-container">
+            <section class="task-list">
+                <!-- 上传数据 -->
+                <div class="task-item">
+                    <button class="task-btn" onclick="document.getElementById('file-upload').click()">上传数据</button>
+                    <p class="task-description">点击按钮选择并上传多个 CSV 文件。</p>
+                    <input type="file" id="file-upload" multiple accept=".csv" style="display: none;">
+                    <div class="file-list" id="file-list">
+                        <!-- 上传的文件将显示在此 -->
+                    </div>
+                </div>
+
+                <!-- 数据解析结果 -->
+                <div id="parsed-data" style="display: none;">
+                    <h3>文件内容：</h3>
+                    <table id="data-table">
+                        <thead>
+                            <tr id="table-header">
+                                <!-- 动态表头 -->
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- 动态表格内容 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 分析数据按钮 -->
+                <div class="task-item">
+                    <button class="task-btn" onclick="analyzeData()">分析数据</button>
+                    <p class="task-description">点击按钮进行数据分析。</p>
+                </div>
+
+                <!-- 查看报告按钮 -->
+                <div class="task-item">
+                    <button class="task-btn" onclick="window.location.href='report3.html'">查看报告</button>
+                    <p class="task-description">点击按钮查看分析生成的报告。</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('file-upload');
+        const fileListContainer = document.getElementById('file-list');
+        const parsedDataContainer = document.getElementById('parsed-data');
+        const tableHeader = document.getElementById('table-header');
+        const tableBody = document.getElementById('table-body');
+        let uploadedFiles = []; // 存储已上传的文件列表
+
+        // 处理文件上传
+        fileInput.addEventListener('change', () => {
+            const files = Array.from(fileInput.files);
+
+            files.forEach(file => {
+                Papa.parse(file, {
+                    complete: function(results) {
+                        if (!validateCSVContent(results)) {
+                            alert('上传的文档格式有误，请重新上传！');
+                            return;
+                        }
+                        if (!uploadedFiles.some(uploaded => uploaded.name === file.name)) {
+                            uploadedFiles.push(file);
+                        }
+                        renderFileList();
+                    },
+                    header: true,
+                    dynamicTyping: true
+                });
+            });
+
+            fileInput.value = "";
+        });
+
+        // 渲染文件列表
+        function renderFileList() {
+            fileListContainer.innerHTML = "";
+
+            uploadedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.classList.add('file-item');
+
+                const fileName = document.createElement('span');
+                fileName.textContent = file.name;
+                fileName.classList.add('file-name');
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '删除';
+                deleteBtn.classList.add('delete-btn');
+                deleteBtn.onclick = () => deleteFile(index);
+
+                fileItem.appendChild(fileName);
+                fileItem.appendChild(deleteBtn);
+                fileListContainer.appendChild(fileItem);
+            });
+        }
+
+        // 删除文件
+        function deleteFile(index) {
+            uploadedFiles.splice(index, 1); // 从数组中删除
+            renderFileList(); // 更新显示
+            // 如果删除文件后没有文件了，清空图表
+            if (uploadedFiles.length === 0) {
+                const plotContainer = document.getElementById('plot-container');
+                if (plotContainer) {
+                    plotContainer.remove();
+                }
+            }
+        }
+
+        // 解析 CSV 文件
+        function parseCSV(file) {
+            Papa.parse(file, {
+                complete: function(results) {
+                    console.log(results); // 查看解析结果
+
+                    // 显示表格
+                    renderTable(results.data, results.meta.fields);
+                },
+                header: true // 使用表头作为键
+            });
+        }
+
+        // 渲染表格
+        function renderTable(data, headers) {
+            // 更新表头
+            tableHeader.innerHTML = '';
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                tableHeader.appendChild(th);
+            });
+
+            // 填充表格内容
+            tableBody.innerHTML = '';
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                headers.forEach(header => {
+                    const td = document.createElement('td');
+                    td.textContent = row[header] || ''; // 防止空值
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+
+            parsedDataContainer.style.display = 'block'; // 显示解析结果
+        }
+
+        function analyzeData() {
+            if (uploadedFiles.length === 0) {
+                alert('请先上传文件！');
+                return;
+            }
+
+            const filePromises = uploadedFiles.map(file => {
+                return new Promise((resolve, reject) => {
+                    Papa.parse(file, {
+                        complete: function(results) {
+                            resolve(results.data);
+                        },
+                        header: true,
+                        dynamicTyping: true
+                    });
+                });
+            });
+
+            Promise.all(filePromises).then(allData => {
+                // 创建图表容器（如果不存在）
+                let plotContainer = document.getElementById('plot-container');
+                if (!plotContainer) {
+                    plotContainer = document.createElement('div');
+                    plotContainer.id = 'plot-container';
+                    plotContainer.style.width = '100%';
+                    plotContainer.style.height = '600px';
+                    plotContainer.style.marginTop = '20px';
+                    
+                    // 修改选择器，直接获取点击的按钮的父元素
+                    const analyzeButtonContainer = document.querySelector('.task-btn[onclick="analyzeData()"]')
+                        .closest('.task-item');
+                    
+                    // 将图表容器添加到分析数据按钮下方
+                    analyzeButtonContainer.appendChild(plotContainer);
+                }
+
+                // 为每个文件创建一个轨迹
+                const traces = allData.map((data, index) => {
+                    const validData = data.filter(row => 
+                        row.X !== undefined && row.X !== null && 
+                        row.Z !== undefined && row.Z !== null
+                    );
+
+                    return {
+                        x: validData.map(row => row.X),
+                        y: validData.map(row => row.Z),
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: `路径 ${index + 1}`,
+                        line: {
+                            width: 2,
+                            color: `hsl(${index * 360 / allData.length}, 70%, 50%)`
+                        },
+                        marker: {
+                            size: 6
+                        }
+                    };
+                });
+
+                const layout = {
+                    title: '运动轨迹图',
+                    xaxis: {
+                        title: 'X 坐标',
+                        zeroline: true,
+                        showgrid: true
+                    },
+                    yaxis: {
+                        title: 'Z 坐标',
+                        zeroline: true,
+                        showgrid: true,
+                        scaleanchor: 'x',
+                        scaleratio: 1
+                    },
+                    height: 600,
+                    width: 800,
+                    showlegend: true,
+                    hovermode: 'closest',
+                    plot_bgcolor: '#f8f9fa',
+                    paper_bgcolor: '#fff'
+                };
+
+                // 绘制图表
+                Plotly.newPlot('plot-container', traces, layout);
+
+                // 保存分析结果到 sessionStorage
+                sessionStorage.setItem('currentAnalysis', JSON.stringify({
+                    plotData: {
+                        data: traces,
+                        layout: layout
+                    }
+                }));
+            });
+        }
+
+        function validateCSVContent(results) {
+            // 检查是否包含必要的列
+            const requiredColumns = ['X', 'Z'];
+            const headers = Object.keys(results.data[0] || {});
+            return requiredColumns.every(col => headers.includes(col));
+        }
+    </script>
+</body>
+</html>

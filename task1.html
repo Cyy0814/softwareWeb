@@ -1,0 +1,421 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.20.0.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实验 1</title>
+    <link rel="stylesheet" href="sidebar.css">
+    <link rel="stylesheet" href="topbar.css">
+    <style>
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .task-item {
+            border: 1px solid #ccc;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-list {
+            margin-top: 1rem;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-name {
+            flex-grow: 1;
+        }
+
+        .delete-btn {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.9rem;
+            color: #fff;
+            background-color: #e63946;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background-color: #d62828;
+        }
+
+        .task-btn {
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+            color: #fff;
+            background-color: #007bef;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .task-btn:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .task-description {
+            font-size: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 0.8rem;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+
+<body> 
+    <div class="sidebar">
+        <a href="index.html" class="nav-item">首页</a>
+        <a href="analysis.html" class="nav-item">实验列表</a>
+        <div class="sub-menu">
+            <a href="task1.html" class="nav-item active">实验 1</a>
+            <a href="task2.html" class="nav-item">实验 2</a>
+            <a href="task3.html" class="nav-item">实验 3</a>
+        </div>
+        <a href="viewReport.html" class="nav-item">查看报告</a>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h1>实验 1</h1>
+        </div>
+
+        <div class="content-container">
+            <section class="task-list">
+                <div class="task-item">
+                    <button class="task-btn" onclick="document.getElementById('file-upload').click()">上传数据</button>
+                    <p class="task-description">点击按钮选择并上传实验1数据。</p>
+                    <input type="file" id="file-upload" multiple accept=".txt" style="display: none;">
+                    <div id="file-list" class="file-list"></div>
+                </div>
+
+                <div class="task-item">
+                    <button class="task-btn" onclick="analyzeData()">分析数据</button>
+                    <p class="task-description">点击按钮进行数据分析。</p>
+                </div>
+
+                <div class="task-item">
+                    <button class="task-btn" onclick="window.location.href='report.html'">查看报告</button>
+                    <p class="task-description">点击按钮查看分析生成的报告。</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('file-upload');
+        const fileList = document.getElementById('file-list');
+        const analysisResultsContainer = document.getElementById('analysis-results');
+        let uploadedFiles = [];
+        let currentFileContent = "";
+
+        fileInput.addEventListener('change', () => {
+            const files = Array.from(fileInput.files);
+            
+            files.forEach(file => {
+                if (!uploadedFiles.some(uploaded => uploaded.name === file.name)) {
+                    uploadedFiles.push(file);
+                }
+            });
+
+            fileInput.value = ""; // 清空输入框
+            updateFileList();
+            
+            if (uploadedFiles.length > 0) {
+                readTextFile(uploadedFiles[0]); // 默认读取第一个文件
+            }
+        });
+
+        function updateFileList() {
+            fileList.innerHTML = '';
+            uploadedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                
+                const fileName = document.createElement('span');
+                fileName.className = 'file-name';
+                fileName.textContent = file.name;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.textContent = '删除';
+                deleteBtn.onclick = () => deleteFile(index);
+                
+                fileItem.appendChild(fileName);
+                fileItem.appendChild(deleteBtn);
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function deleteFile(index) {
+            uploadedFiles.splice(index, 1);
+            updateFileList();
+            
+            if (uploadedFiles.length > 0) {
+                readTextFile(uploadedFiles[0]);
+            } else {
+                currentFileContent = "";
+                analysisResultsContainer.innerHTML = "";
+            }
+        }
+
+        function validateFileContent(content) {
+            // 检查是否包含必要的关键字
+            const requiredKeywords = ['键: B', '测试者位置:', '目标声源位置:', '头部方向向量:', '测试角'];
+            return requiredKeywords.every(keyword => content.includes(keyword));
+        }
+
+        function readTextFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const content = event.target.result;
+                if (!validateFileContent(content)) {
+                    alert('上传的文档格式有误，请重新上传！');
+                    // 从上传列表中移除无效文件
+                    uploadedFiles = uploadedFiles.filter(f => f.name !== file.name);
+                    updateFileList();
+                    return;
+                }
+                currentFileContent = content;
+            };
+            reader.readAsText(file);
+        }
+
+        function analyzeData() {
+            if (uploadedFiles.length === 0) {
+                alert('请先上传文件！');
+                return;
+            }
+
+            // 存储所有文件的分析结果
+            const filePromises = uploadedFiles.map(file => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const fileContent = e.target.result;
+                        const lines = fileContent.split('\n').filter(line => line.trim());
+                        const groupedData = {};
+
+                        lines.forEach(line => {
+                            const keyMatch = line.match(/键: ([A-Z])/);
+                            const key = keyMatch ? keyMatch[1] : null;
+                            if (key) {
+                                if (!groupedData[key]) groupedData[key] = [];
+                                groupedData[key].push(line);
+                            }
+                        });
+
+                        const results = [];
+
+                        if (groupedData['B']) {
+                            groupedData['B'].forEach(bLine => {
+                                const testPos = extractVector(bLine, /测试者位置: \((-?\d+\.\d+), (-?\d+\.\d+), (-?\d+\.\d+)\)/);
+                                const targetPos = extractVector(bLine, /目标声源位置: \((-?\d+\.\d+), (-?\d+\.\d+), (-?\d+\.\d+)\)/);
+                                const headDir = extractVector(bLine, /头部方向向量: \((-?\d+\.\d+), (-?\d+\.\d+), (-?\d+\.\d+)\)/);
+                                const testAngleMatch = bLine.match(/测试角 \((水平|竖直) θ\): (-?\d+\.\d+)°/);
+                                const testAngle = testAngleMatch ? testAngleMatch[2] : null;
+                                const angleType = testAngleMatch ? testAngleMatch[1] : null;
+
+                                if (testPos && targetPos && headDir && testAngle) {
+                                    const alpha = subtractVectors(targetPos, testPos);
+                                    const beta = headDir;
+                                    const deviation = calculateAngleBetweenVectors(alpha, beta);
+                                    results.push({ alpha, beta, deviation, testAngle, angleType });
+                                }
+                            });
+                        }
+
+                        resolve({
+                            fileName: file.name,
+                            results: results
+                        });
+                    };
+                    reader.readAsText(file);
+                });
+            });
+
+            Promise.all(filePromises).then(allFileResults => {
+                // 创建图表容器（如果不存在）
+                let plotContainer = document.getElementById('plot');
+                if (!plotContainer) {
+                    plotContainer = document.createElement('div');
+                    plotContainer.id = 'plot';
+                    plotContainer.style.width = '100%';
+                    plotContainer.style.height = '600px';
+                    plotContainer.style.marginTop = '20px';
+                    document.querySelector('.task-item:nth-child(2)').appendChild(plotContainer);
+                }
+
+                // 准备图表数据
+                const traces = allFileResults.map((fileResult, index) => {
+                    const sortedResults = [...fileResult.results].sort((a, b) => 
+                        parseFloat(a.testAngle) - parseFloat(b.testAngle)
+                    );
+
+                    return {
+                        x: sortedResults.map(r => parseFloat(r.testAngle)),
+                        y: sortedResults.map(r => parseFloat(r.deviation)),
+                        mode: 'lines+markers',
+                        type: 'scatter',
+                        name: fileResult.fileName,
+                        line: {
+                            color: `hsl(${index * 360 / allFileResults.length}, 70%, 50%)`,
+                            width: 2
+                        },
+                        marker: {
+                            size: 6
+                        }
+                    };
+                });
+
+                const layout = {
+                    title: {
+                        text: '测试角度与偏差角度关系图',
+                        font: { size: 24 }
+                    },
+                    xaxis: {
+                        title: {
+                            text: '测试角度 (°)',
+                            font: { size: 16 }
+                        },
+                        gridcolor: '#e6e6e6',
+                        zerolinecolor: '#999999'
+                    },
+                    yaxis: {
+                        title: {
+                            text: '偏差角度 (°)',
+                            font: { size: 16 }
+                        },
+                        gridcolor: '#e6e6e6',
+                        zerolinecolor: '#999999'
+                    },
+                    plot_bgcolor: '#ffffff',
+                    paper_bgcolor: '#ffffff',
+                    showlegend: true,
+                    legend: {
+                        x: 1,
+                        xanchor: 'right',
+                        y: 1
+                    },
+                    margin: {
+                        l: 60,
+                        r: 30,
+                        t: 50,
+                        b: 50
+                    }
+                };
+
+                // 绘制图表
+                Plotly.newPlot('plot', traces, layout);
+
+                // 保存当前分析结果到 sessionStorage
+                sessionStorage.setItem('currentAnalysis', JSON.stringify({
+                    results: allFileResults,
+                    plotData: {
+                        data: traces,
+                        layout: layout
+                    }
+                }));
+            });
+        }
+
+        // 辅助函数
+        function extractVector(line, regex) {
+            const match = line.match(regex);
+            if (match) {
+                return [parseFloat(match[1]), parseFloat(match[2]), parseFloat(match[3])];
+            }
+            return null;
+        }
+
+        function subtractVectors(v1, v2) {
+            return v1.map((val, index) => val - v2[index]);
+        }
+
+        function calculateAngleBetweenVectors(v1, v2) {
+            const dotProduct = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+            const magnitudeV1 = Math.sqrt(v1[0] ** 2 + v1[1] ** 2 + v1[2] ** 2);
+            const magnitudeV2 = Math.sqrt(v2[0] ** 2 + v2[1] ** 2 + v2[2] ** 2);
+            const cosTheta = dotProduct / (magnitudeV1 * magnitudeV2);
+            const angleRad = Math.acos(cosTheta);
+            const angleDeg = angleRad * (180 / Math.PI);
+            return angleDeg.toFixed(4);
+        }
+
+        function renderReportTable(allFileResults) {
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <tr>
+                    <th>文件名</th>
+                    <th>测试角类型</th>
+                    <th>测试角 θ (°)</th>
+                    <th>α向量</th>
+                    <th>β向量</th>
+                    <th>偏差角度(°)</th>
+                </tr>
+            `;
+            
+            allFileResults.forEach(fileResult => {
+                const sortedResults = [...fileResult.results].sort((a, b) => 
+                    parseFloat(a.testAngle) - parseFloat(b.testAngle)
+                );
+                
+                sortedResults.forEach((result, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index === 0 ? fileResult.fileName : ''}</td>
+                        <td>${result.angleType}</td>
+                        <td>${parseInt(result.testAngle)}</td>
+                        <td>[${result.alpha.map(v => parseFloat(v).toFixed(2)).join(', ')}]</td>
+                        <td>[${result.beta.map(v => parseFloat(v).toFixed(2)).join(', ')}]</td>
+                        <td>${result.deviation}°</td>
+                    `;
+                    table.appendChild(row);
+                });
+            });
+            
+            return table;
+        }
+    </script>
+</body>
+</html>

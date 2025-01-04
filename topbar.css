@@ -1,0 +1,41 @@
+/* 顶部栏样式 */
+.top-bar {
+    background-color: #00274d;
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    left: 200px; /* 与侧边栏宽度相同 */
+    right: 0;
+    z-index: 1000;
+}
+
+.top-bar h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    text-align: left;
+    margin-left: 0;
+    padding-left: 0;
+}
+
+.back-button {
+    text-decoration: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    background-color: #001a33;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.back-button:hover {
+    background-color: #003366;
+}
+
+/* 为固定顶部栏添加内容偏移 */
+.content-container {
+    margin-top: 70px; /* 与顶部栏高度相对应 */
+} 

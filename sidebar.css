@@ -1,0 +1,75 @@
+/* 左侧导航栏样式 */
+.sidebar {
+    width: 200px;
+    height: 100vh;
+    background-color: #00274d;
+    padding: 20px 0;
+    position: fixed;
+    left: 0;
+    top: 0;
+}
+
+.nav-item {
+    padding: 15px 25px;
+    color: white;
+    text-decoration: none;
+    display: block;
+    transition: background-color 0.3s;
+}
+
+.nav-item:hover {
+    background-color: #003d80;
+}
+
+.nav-item.active {
+    background-color: #003d80;
+    border-left: 4px solid #fff;
+}
+
+/* 子菜单样式 */
+.sub-menu {
+    padding-left: 20px;
+}
+
+.sub-menu .nav-item {
+    padding: 10px 25px;
+    font-size: 0.9em;
+}
+
+/* 添加子菜单项的激活样式 */
+.sub-menu .nav-item.active {
+    background-color: #003d80;
+    border-left: 4px solid #fff;
+}
+
+/* 主内容区域样式 */
+.main-content {
+    margin-left: 200px;
+    min-height: 100vh;
+    background-color: #f4f4f9;
+    padding: 20px;
+    width: calc(100% - 200px);
+}
+
+/* 内容容器样式 */
+.content-container {
+    margin-top: 70px; /* 与顶部栏高度相对应 */
+}
+
+/* 基础布局 */
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    font-family: Arial, sans-serif;
+}
+
+/* 首页按钮特殊样式 */
+.nav-item[href="index.html"] {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 10px;
+}
+
+.nav-item[href="index.html"]:hover {
+    background-color: #003d80;
+} 

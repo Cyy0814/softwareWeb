@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据分析</title>
+    <link rel="stylesheet" href="sidebar.css">
+    <link rel="stylesheet" href="topbar.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            font-family: Arial, sans-serif;
+        }
+
+        /* 左侧导航栏样式 */
+        .sidebar {
+            width: 200px;
+            height: 100vh;
+            background-color: #00274d;
+            padding: 20px 0;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.3s;
+        }
+
+        .nav-item:hover {
+            background-color: #003d80;
+        }
+
+        .nav-item.active {
+            background-color: #003d80;
+            border-left: 4px solid #fff;
+        }
+
+        /* 子菜单样式 */
+        .sub-menu {
+            padding-left: 20px;
+            display: none;
+        }
+
+        .nav-item.active + .sub-menu {
+            display: block;
+        }
+
+        .sub-menu .nav-item {
+            padding: 10px 25px;
+            font-size: 0.9em;
+        }
+
+        /* 主要内容区域样式 */
+        .main-content {
+            margin-left: 200px;
+            padding: 20px;
+            width: calc(100% - 200px);
+        }
+
+        .experiment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .experiment-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .experiment-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .experiment-card h2 {
+            color: #00274d;
+            margin-top: 0;
+        }
+
+        .experiment-card p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .start-btn {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .start-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <!-- 左侧导航栏 -->
+    <div class="sidebar">
+        <a href="main.html" class="nav-item">首页</a>
+        <a href="analysis.html" class="nav-item active">实验列表</a>
+        <div class="sub-menu">
+            <a href="task1.html" class="nav-item">实验 1</a>
+            <a href="task2.html" class="nav-item">实验 2</a>
+            <a href="task3.html" class="nav-item">实验 3</a>
+        </div>
+        <a href="viewReport.html" class="nav-item">查看报告</a>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <div class="main-content">
+        <!-- 顶部栏 -->
+        <div class="top-bar">
+            <h1>实验列表</h1>
+        </div>
+
+        <!-- 内容容器 -->
+        <div class="content-container">
+            <div class="experiment-list">
+                <!-- 实验1卡片 -->
+                <div class="experiment-card">
+                    <h2>实验 1</h2>
+                    <p>同⼀受试者对不同位置声源的定位能⼒存在明显差异的实验。</p>
+                    <button class="start-btn" onclick="window.location.href='task1.html'">开始实验</button>
+                </div>
+
+                <!-- 实验2卡片 -->
+                <div class="experiment-card">
+                    <h2>实验 2</h2>
+                    <p>不同sofa⽂件对同⼀受试者在竖直⾯上的定位准确度影响实验。</p>
+                    <button class="start-btn" onclick="window.location.href='task2.html'">开始实验</button>
+                </div>
+
+                <!-- 实验3卡片 -->
+                <div class="experiment-card">
+                    <h2>实验 3</h2>
+                    <p>听觉引导盲人行走路线实验。</p>
+                    <button class="start-btn" onclick="window.location.href='task3.html'">开始实验</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

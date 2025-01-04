@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查看报告</title>
+    <script src="https://cdn.plot.ly/plotly-2.20.0.min.js"></script>
+    <link rel="stylesheet" href="sidebar.css">
+    <link rel="stylesheet" href="topbar.css">
+    <style>
+        /* 全局样式 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
+            color: #333;
+        }
+
+        /* 顶部栏样式 */
+        .top-bar {
+            width: 100%;
+            background-color: #00274d;
+            padding: 1rem 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #ffffff;
+        }
+
+        .top-bar h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .back-button {
+            text-decoration: none;
+            color: #ffffff;
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            margin-right: 1rem;
+        }
+
+        .back-button:hover {
+            background-color: #003d80;
+        }
+
+        /* 筛选条件 */
+        .filters {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            padding: 1rem;
+            justify-content: center;
+        }
+
+        label {
+            font-size: 1rem;
+        }
+
+        select, input[type="date"] {
+            padding: 0.5rem;
+            font-size: 1rem;
+        }
+
+        /* 报告显示容器 */
+        .report-container {
+            border: 1px solid #ccc;
+            padding: 1rem;
+            width: 100%;
+            max-width: 1000px;
+            min-height: 100px;
+            background-color: #f9f9f9;
+            margin: 2rem auto;
+        }
+
+        .report-item {
+            margin: 2rem 0;
+            padding: 2rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: white;
+        }
+
+        .report-item h4 {
+            color: #00274d;
+            margin: 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .report-item table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .report-item th,
+        .report-item td {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .report-item th {
+            background-color: #f5f5f5;
+        }
+
+        .report-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .report-list-item {
+            padding: 1rem;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .report-list-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .report-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .report-title {
+            font-weight: bold;
+            color: #00274d;
+        }
+
+        .report-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .back-to-list-btn {
+            padding: 0.5rem 1rem;
+            background-color: #00274d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+
+        .back-to-list-btn:hover {
+            background-color: #003d80;
+        }
+
+        .report-detail {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin: 20px;
+            overflow-x: hidden;
+        }
+
+        .report-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .back-to-list {
+            margin-bottom: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .back-to-list:hover {
+            background-color: #0056b3;
+        }
+
+        .manage-btn {
+            padding: 0.5rem 1rem;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .manage-btn:hover {
+            background-color: #218838;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 2rem;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 8px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .manage-report-item {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 1rem;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .report-info {
+            flex-grow: 1;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .rename-btn, .delete-report-btn {
+            padding: 0.3rem 0.8rem;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .rename-btn {
+            background-color: #007bff;
+        }
+
+        .rename-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .delete-report-btn {
+            background-color: #dc3545;
+        }
+
+        .delete-report-btn:hover {
+            background-color: #c82333;
+        }
+
+        .close-modal {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            background-color: #5a6268;
+        }
+
+        .report-info {
+            flex-grow: 1;
+            margin-right: 1rem;
+        }
+
+        .report-name {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .report-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .rename-btn {
+            padding: 0.2rem 0.5rem;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .rename-btn:hover {
+            background-color: #5a6268;
+        }
+
+        .rename-input {
+            padding: 0.3rem;
+            border: 1px solid #ced4da;
+            border-radius: 3px;
+            margin-right: 0.5rem;
+        }
+
+        .save-rename-btn, .cancel-rename-btn {
+            padding: 0.2rem 0.5rem;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 0.3rem;
+        }
+
+        .save-rename-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .save-rename-btn:hover {
+            background-color: #218838;
+        }
+
+        .cancel-rename-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .cancel-rename-btn:hover {
+            background-color: #5a6268;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .plot-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 2rem auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        .results-table-container {
+            margin: 20px 0;
+            overflow-x: auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            background-color: white;
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            background-color: white;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f9;
+            color: #00274d;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tr:hover {
+            background-color: #f0f0f0;
+        }
+
+        .report-content h3 {
+            color: #00274d;
+            margin: 20px 0;
+            font-size: 1.5rem;
+        }
+
+        .report-content h4 {
+            color: #00274d;
+            margin: 15px 0;
+            font-size: 1.2rem;
+        }
+
+        .report-detail {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 左侧导航栏 -->
+    <div class="sidebar">
+        <a href="main.html" class="nav-item">首页</a>
+        <a href="analysis.html" class="nav-item">实验列表</a>
+        <div class="sub-menu">
+            <a href="task1.html" class="nav-item">实验 1</a>
+            <a href="task2.html" class="nav-item">实验 2</a>
+            <a href="task3.html" class="nav-item">实验 3</a>
+        </div>
+        <a href="viewReport.html" class="nav-item active">查看报告</a>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <div class="main-content">
+        <!-- 顶部栏 -->
+        <div class="top-bar">
+            <h1>查看往期报告</h1>
+        </div>
+
+        <!-- 内容容器 -->
+        <div class="content-container">
+            <!-- 筛选条件 -->
+            <section class="filters">
+                <label for="experiment-select">实验类型：</label>
+                <select id="experiment-select">
+                    <option value="all">全部</option>
+                    <option value="1">实验1</option>
+                    <option value="2">实验2</option>
+                    <option value="3">实验3</option>
+                </select>
+
+                <label for="sort-order">查看顺序：</label>
+                <select id="sort-order">
+                    <option value="desc">逆序</option>
+                    <option value="asc">顺序</option>
+                </select>
+
+                <label for="date-select">选择日期：</label>
+                <input type="date" id="date-select">
+
+                <button id="manage-reports-btn" class="manage-btn">管理报告</button>
+            </section>
+
+            <!-- 显示报告 -->
+            <section id="report-display" class="report-container">
+                <p>请选择筛选条件以显示报告。</p>
+            </section>
+        </div>
+
+        <!-- 添加管理界面的HTML -->
+        <div id="manage-modal" class="modal">
+            <div class="modal-content">
+                <h2>报告管理</h2>
+                <div id="manage-reports-list"></div>
+                <button class="close-modal">关闭</button>
+            </div>
+        </div>
+
+        <script>
+            // 修改日期选择框的初始化
+            const dateInput = document.getElementById("date-select");
+            dateInput.value = ""; // 默认不选择日期
+
+            // 修改实验类型选择的初始值
+            document.getElementById("experiment-select").value = "all";
+
+            // 页面加载时显示所有报告
+            window.onload = function() {
+                updateReportDisplay();
+            }
+
+            // 更新报告显示
+            function updateReportDisplay() {
+                const experimentSelect = document.getElementById("experiment-select").value;
+                const sortOrder = document.getElementById("sort-order").value;
+                const dateSelect = document.getElementById("date-select").value;
+                const reportDisplay = document.getElementById("report-display");
+                reportDisplay.innerHTML = '';
+
+                // 获取所有报告
+                const allReports = [];
+                
+                // 获取所有实验的报告
+                for (let expNum = 1; expNum <= 3; expNum++) {
+                    const reportCount = localStorage.getItem(`exp${expNum}ReportCount`) || 0;
+                    for (let i = 1; i <= reportCount; i++) {
+                        const reportStr = localStorage.getItem(`exp${expNum}_report_${i}`);
+                        if (reportStr) {
+                            const report = JSON.parse(reportStr);
+                            allReports.push({
+                                ...report,
+                                experiment: expNum,
+                                originalId: i
+                            });
+                        }
+                    }
+                }
+
+                // 应用筛选条件
+                let filteredReports = allReports.filter(report => {
+                    if (experimentSelect !== 'all' && report.experiment !== parseInt(experimentSelect)) {
+                        return false;
+                    }
+                    if (dateSelect) {
+                        const reportDate = new Date(report.date).toLocaleDateString();
+                        if (reportDate !== new Date(dateSelect).toLocaleDateString()) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+
+                // 排序
+                filteredReports.sort((a, b) => {
+                    const dateA = new Date(a.date);
+                    const dateB = new Date(b.date);
+                    return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+                });
+
+                // 创建报告列表
+                const reportList = document.createElement('div');
+                reportList.className = 'report-list';
+
+                filteredReports.forEach(report => {
+                    const listItem = document.createElement('div');
+                    listItem.className = 'report-list-item';
+                    listItem.innerHTML = `
+                        <div class="report-summary">
+                            <span class="report-title">实验${report.experiment}报告 - ${report.name}</span>
+                            <span class="report-date">${new Date(report.date).toLocaleString()}</span>
+                        </div>
+                    `;
+                    listItem.onclick = () => showReportDetail(report);
+                    reportList.appendChild(listItem);
+                });
+
+                reportDisplay.appendChild(reportList);
+            }
+
+            function showReportDetail(report) {
+                const reportDisplay = document.getElementById('report-display');
+                reportDisplay.innerHTML = '';
+
+                // 创建返回按钮
+                const backButton = document.createElement('button');
+                backButton.className = 'back-to-list';
+                backButton.textContent = '返回列表';
+                backButton.onclick = updateReportDisplay;
+
+                // 创建报告详情视图
+                const detailView = document.createElement('div');
+                detailView.className = 'report-detail';
+
+                // 创建报告内容
+                const reportContent = document.createElement('div');
+                reportContent.className = 'report-content';
+
+                // 添加报告基本信息
+                reportContent.innerHTML = `
+                    <h2>报告 #${report.id} - ${report.name}</h2>
+                    <p>创建时间：${new Date(report.date).toLocaleString()}</p>
+                    <p>实验类型：实验 ${report.experiment}</p>
+                `;
+
+                // 添加数据表格（如果有）
+                if (report.results) {
+                    reportContent.innerHTML += renderReportTable(report);
+                }
+
+                // 添加图表容器
+                const plotContainer = document.createElement('div');
+                plotContainer.id = `plot-${report.id}`;
+                plotContainer.style.width = '100%';
+                plotContainer.style.height = '600px';
+                reportContent.appendChild(plotContainer);
+
+                // 组装页面
+                detailView.appendChild(reportContent);
+                reportDisplay.appendChild(backButton);
+                reportDisplay.appendChild(detailView);
+
+                // 渲染图表
+                if (report.plotData) {
+                    const layout = {
+                        ...report.plotData.layout,
+                        width: Math.min(900, document.querySelector('.content-container').offsetWidth - 40),
+                        height: 600,
+                        margin: {
+                            l: 50,
+                            r: 50,
+                            t: 50,
+                            b: 50
+                        }
+                    };
+
+                    const plotData = Array.isArray(report.plotData.data) ? 
+                        report.plotData.data : [report.plotData.data];
+                    
+                    Plotly.newPlot(`plot-${report.id}`, plotData, layout);
+
+                    // 响应窗口大小变化
+                    window.addEventListener('resize', () => {
+                        const newWidth = Math.min(900, document.querySelector('.content-container').offsetWidth - 40);
+                        Plotly.relayout(`plot-${report.id}`, { width: newWidth });
+                    });
+                }
+            }
+
+            // 添加 renderPlot 函数
+            function renderPlot(plotData) {
+                const horizontalTrace = {
+                    x: plotData.horizontal.x,
+                    y: plotData.horizontal.y,
+                    mode: 'lines+markers',
+                    type: 'scatter',
+                    name: '水平角度偏差',
+                    line: {
+                        color: '#1f77b4',
+                        width: 2
+                    },
+                    marker: {
+                        size: 8
+                    }
+                };
+
+                const verticalTrace = {
+                    x: plotData.vertical.x,
+                    y: plotData.vertical.y,
+                    mode: 'lines+markers',
+                    type: 'scatter',
+                    name: '竖直角度偏差',
+                    line: {
+                        color: '#ff7f0e',
+                        width: 2
+                    },
+                    marker: {
+                        size: 8
+                    }
+                };
+
+                const layout = {
+                    title: {
+                        text: '测试角度与偏差角度关系图',
+                        font: {
+                            size: 24
+                        }
+                    },
+                    xaxis: {
+                        title: {
+                            text: '测试角度 (°)',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        gridcolor: '#e6e6e6',
+                        zerolinecolor: '#999999'
+                    },
+                    yaxis: {
+                        title: {
+                            text: '偏差角度 (°)',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        gridcolor: '#e6e6e6',
+                        zerolinecolor: '#999999'
+                    },
+                    plot_bgcolor: '#ffffff',
+                    paper_bgcolor: '#ffffff',
+                    showlegend: true,
+                    legend: {
+                        x: 1,
+                        xanchor: 'right',
+                        y: 1
+                    },
+                    margin: {
+                        l: 60,
+                        r: 30,
+                        t: 50,
+                        b: 50
+                    }
+                };
+
+                Plotly.newPlot('plot', [horizontalTrace, verticalTrace], layout);
+            }
+
+            // 添加创建数据表格的辅助函数
+            function createDataTable(data) {
+                if (!Array.isArray(data)) {
+                    console.error('Invalid data format for table');
+                    return document.createElement('div');
+                }
+
+                const table = document.createElement('table');
+                table.innerHTML = `
+                    <tr>
+                        <th>测试角类型</th>
+                        <th>测试角 θ (°)</th>
+                        <th>α向量</th>
+                        <th>β向量</th>
+                        <th>偏差角度(°)</th>
+                    </tr>
+                `;
+                
+                data.forEach(result => {
+                    if (result && result.angleType && result.testAngle && result.alpha && result.beta) {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${result.angleType}</td>
+                            <td>${parseInt(result.testAngle)}</td>
+                            <td>[${result.alpha.map(v => parseFloat(v).toFixed(2)).join(', ')}]</td>
+                            <td>[${result.beta.map(v => parseFloat(v).toFixed(2)).join(', ')}]</td>
+                            <td>${result.deviation || result.deviationAngle}°</td>
+                        `;
+                        table.appendChild(row);
+                    }
+                });
+                
+                return table;
+            }
+
+            // 添加事件监听
+            document.getElementById("experiment-select").addEventListener("change", updateReportDisplay);
+            document.getElementById("sort-order").addEventListener("change", updateReportDisplay);
+            document.getElementById("date-select").addEventListener("change", updateReportDisplay);
+
+            // 显示管理界面
+            function showManageReports() {
+                const modal = document.getElementById('manage-modal');
+                const manageList = document.getElementById('manage-reports-list');
+                manageList.innerHTML = '';
+                
+                // 获取所有报告
+                const allReports = [];
+                
+                // 获取所有实验的报告
+                for (let expNum = 1; expNum <= 3; expNum++) {
+                    const reportCount = localStorage.getItem(`exp${expNum}ReportCount`) || 0;
+                    for (let i = 1; i <= reportCount; i++) {
+                        const reportStr = localStorage.getItem(`exp${expNum}_report_${i}`);
+                        if (reportStr) {
+                            const report = JSON.parse(reportStr);
+                            allReports.push({
+                                ...report,
+                                experiment: expNum,
+                                originalId: i,
+                                name: report.name || `实验${expNum}报告 #${i}`
+                            });
+                        }
+                    }
+                }
+                
+                // 按时间排
+                allReports.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                // 显示报告列表
+                allReports.forEach(report => {
+                    const item = document.createElement('div');
+                    item.className = 'manage-report-item';
+                    item.innerHTML = `
+                        <div class="report-info">
+                            <div class="report-name" id="report-name-${report.experiment}-${report.originalId}">
+                                <span class="name-text">${report.name}</span>
+                            </div>
+                            <span class="report-date">${new Date(report.date).toLocaleString()}</span>
+                        </div>
+                        <button class="rename-btn" onclick="startRename(${report.experiment}, ${report.originalId})">
+                            重命名
+                        </button>
+                        <button class="delete-report-btn" onclick="deleteReport(${report.experiment}, ${report.originalId})">
+                            删除
+                        </button>
+                    `;
+                    manageList.appendChild(item);
+                });
+                
+                modal.style.display = 'block';
+            }
+            
+            // 删除报告
+            function deleteReport(experiment, id) {
+                if (confirm(`确定要删除实验${experiment}报告 #${id}吗？`)) {
+                    // 删除报告
+                    localStorage.removeItem(`exp${experiment}_report_${id}`);
+                    
+                    // 更新报告计数
+                    const reportCount = parseInt(localStorage.getItem(`exp${experiment}ReportCount`) || 0);
+                    
+                    // 重新整理剩余报告的 ID
+                    let newCount = 0;
+                    for (let i = 1; i <= reportCount; i++) {
+                        const reportData = localStorage.getItem(`exp${experiment}_report_${i}`);
+                        if (reportData) {
+                            newCount++;
+                            if (i !== newCount) {
+                                // 移动报告到新位置
+                                const report = JSON.parse(reportData);
+                                report.id = newCount;
+                                localStorage.setItem(`exp${experiment}_report_${newCount}`, JSON.stringify(report));
+                                localStorage.removeItem(`exp${experiment}_report_${i}`);
+                            }
+                        }
+                    }
+                    
+                    // 更新计数器
+                    localStorage.setItem(`exp${experiment}ReportCount`, newCount.toString());
+                    
+                    // 刷新管理界面和报告显示
+                    showManageReports();
+                    updateReportDisplay();
+                }
+            }
+            
+            // 关闭管理界面
+            function closeManageModal() {
+                document.getElementById('manage-modal').style.display = 'none';
+            }
+            
+            // 添加事件监听
+            document.getElementById('manage-reports-btn').addEventListener('click', showManageReports);
+            document.querySelector('.close-modal').addEventListener('click', closeManageModal);
+            
+            // 点击模态框外部关闭
+            window.onclick = function(event) {
+                const modal = document.getElementById('manage-modal');
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            }
+
+            // 添加重命名功能
+            function startRename(experiment, id) {
+                const nameContainer = document.getElementById(`report-name-${experiment}-${id}`);
+                const currentName = nameContainer.querySelector('.name-text').textContent;
+                
+                // 创建输入框
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = currentName;
+                input.className = 'rename-input';
+                
+                // 创建保存按钮
+                const saveBtn = document.createElement('button');
+                saveBtn.textContent = '保存';
+                saveBtn.className = 'save-rename-btn';
+                saveBtn.onclick = () => saveRename(experiment, id, input.value);
+                
+                // 创建取消按钮
+                const cancelBtn = document.createElement('button');
+                cancelBtn.textContent = '取消';
+                cancelBtn.className = 'cancel-rename-btn';
+                cancelBtn.onclick = () => showManageReports(); // 刷新列表取消重命名
+                
+                // 替换原有内容
+                nameContainer.innerHTML = '';
+                nameContainer.appendChild(input);
+                nameContainer.appendChild(saveBtn);
+                nameContainer.appendChild(cancelBtn);
+                
+                // 聚焦输入框
+                input.focus();
+            }
+
+            // 保存重命名
+            function saveRename(experiment, id, newName) {
+                const reportKey = `exp${experiment}_report_${id}`;
+                const reportStr = localStorage.getItem(reportKey);
+                
+                if (reportStr) {
+                    const report = JSON.parse(reportStr);
+                    report.name = newName;
+                    localStorage.setItem(reportKey, JSON.stringify(report));
+                    showManageReports(); // 刷新列表
+                    updateReportDisplay(); // 刷新主显示
+                }
+            }
+
+            function renderReport(report) {
+                const reportContainer = document.createElement('div');
+                reportContainer.className = 'report-item';
+                reportContainer.id = `report-${report.id}`;
+
+                // 添加报告基本信息
+                const header = document.createElement('div');
+                header.className = 'report-header';
+                header.innerHTML = `
+                    <h3>报告 #${report.id} - ${report.name}</h3>
+                    <p>创建时间：${new Date(report.date).toLocaleString()}</p>
+                    <p>实验类型：实验 ${report.experiment}</p>
+                `;
+
+                // 添加数据表格（如果有）
+                const tableContainer = document.createElement('div');
+                if (report.results) {
+                    tableContainer.innerHTML = renderReportTable(report);
+                }
+
+                // 添加图表
+                const plotContainer = document.createElement('div');
+                plotContainer.style.width = '100%';
+                plotContainer.style.height = '600px';
+                plotContainer.id = `plot-${report.id}`;
+
+                // 组装报告容器
+                reportContainer.appendChild(header);
+                reportContainer.appendChild(tableContainer);
+                reportContainer.appendChild(plotContainer);
+
+                document.getElementById('reports-container').appendChild(reportContainer);
+
+                // 渲染图
+                if (report.plotData) {
+                    const layout = {
+                        ...report.plotData.layout,
+                        width: Math.min(900, document.querySelector('.content-container').offsetWidth - 40),
+                        height: 600,
+                        margin: {
+                            l: 50,
+                            r: 50,
+                            t: 50,
+                            b: 50
+                        }
+                    };
+
+                    const plotData = Array.isArray(report.plotData.data) ? 
+                        report.plotData.data : [report.plotData.data];
+                    
+                    Plotly.newPlot(`plot-${report.id}`, plotData, layout);
+
+                    // 响应窗口大小变化
+                    window.addEventListener('resize', () => {
+                        const newWidth = Math.min(900, document.querySelector('.content-container').offsetWidth - 40);
+                        Plotly.relayout(`plot-${report.id}`, { width: newWidth });
+                    });
+                }
+            }
+
+            function renderReportTable(report) {
+                if (report.experiment === 1) {
+                    let html = '<h4>数据分析结果</h4>';
+                    html += '<table><tr><th>文件名</th><th>测试角类型</th><th>测试角 θ (°)</th><th>α向量</th><th>β向量</th><th>偏差角度(°)</th></tr>';
+                    
+                    report.results.forEach(fileResult => {
+                        const sortedResults = [...fileResult.results].sort((a, b) => 
+                            parseFloat(a.testAngle) - parseFloat(b.testAngle)
+                        );
+                        
+                        sortedResults.forEach((result, index) => {
+                            html += `
+                                <tr>
+                                    <td>${index === 0 ? fileResult.fileName : ''}</td>
+                                    <td>${result.angleType}</td>
+                                    <td>${parseInt(result.testAngle)}</td>
+                                    <td>(${result.alpha.map(v => v.toFixed(2)).join(', ')})</td>
+                                    <td>(${result.beta.map(v => v.toFixed(2)).join(', ')})</td>
+                                    <td>${result.deviation}</td>
+                                </tr>
+                            `;
+                        });
+                    });
+                    
+                    html += '</table>';
+                    return html;
+                } else if (report.experiment === 2) {
+                    // 保持实验2的原有渲染逻辑
+                    let html = '<h4>数据分析结果</h4>';
+                    html += '<table><tr><th>SOFA文件</th><th>测试角类型</th><th>测试角 θ (°)</th><th>α向量</th><th>β向量</th><th>偏差角度(°)</th></tr>';
+                    
+                    for (const [sofa, data] of Object.entries(report.results)) {
+                        if (!Array.isArray(data)) continue;
+                        
+                        const sortedData = [...data].sort((a, b) => parseFloat(a.testAngle) - parseFloat(b.testAngle));
+                        
+                        sortedData.forEach((result, index) => {
+                            html += `
+                                <tr>
+                                    <td>${index === 0 ? sofa : ''}</td>
+                                    <td>${result.angleType}</td>
+                                    <td>${parseInt(result.testAngle)}</td>
+                                    <td>(${result.alpha.map(v => v.toFixed(2)).join(', ')})</td>
+                                    <td>(${result.beta.map(v => v.toFixed(2)).join(', ')})</td>
+                                    <td>${result.deviationAngle}</td>
+                                </tr>
+                            `;
+                        });
+                    }
+                    
+                    html += '</table>';
+                    return html;
+                }
+                
+                return ''; // 实验3不需要表格
+            }
+
+            function loadReports() {
+                const reportsContainer = document.getElementById('reports-container');
+                reportsContainer.innerHTML = '';
+
+                // 加载所有实验的报告
+                for (let expNum = 1; expNum <= 3; expNum++) {
+                    const reportCount = localStorage.getItem(`exp${expNum}ReportCount`) || 0;
+                    
+                    for (let i = 1; i <= reportCount; i++) {
+                        const reportData = localStorage.getItem(`exp${expNum}_report_${i}`);
+                        if (reportData) {
+                            const report = JSON.parse(reportData);
+                            renderReport(report);
+                        }
+                    }
+                }
+            }
+        </script>
+    </div>
+</body>
+</html>
